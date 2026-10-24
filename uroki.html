@@ -1,0 +1,853 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Уроки и звонок</title>
+<head>
+  <meta name="author" content="Александр Тарасов репетитор английского. Get&Use youtube channel">
+</head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="me" href="https://github.com/ваш-логин">
+<style>
+/* Раскладка: слева звонок и часы на уровне «сейчас», по центру лента уроков в рамке, справа два переключателя.
+   Стиль: тетрадный лист в клетку, фломастерные рамки, как на эскизе. */
+:root{
+  --bg:#f6f2e6;
+  --grid:rgba(54,98,190,.14);
+  --card:#fffef9;
+  --ink:#1b2652;
+  --muted:#62709c;
+  --stroke:#2a3d8f;
+  --now:#e0344a;
+  --hatch:rgba(27,38,82,.13);
+  --shadow:rgba(27,38,82,.18);
+  --font:'Nunito',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --nowY:300px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11162b;--grid:rgba(140,170,255,.08);--card:#1b2242;--ink:#eaeeff;--muted:#9aa5cf;
+    --stroke:#93a7ff;--now:#ff5c73;--hatch:rgba(255,255,255,.10);--shadow:rgba(0,0,0,.45);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11162b;--grid:rgba(140,170,255,.08);--card:#1b2242;--ink:#eaeeff;--muted:#9aa5cf;
+  --stroke:#93a7ff;--now:#ff5c73;--hatch:rgba(255,255,255,.10);--shadow:rgba(0,0,0,.45);color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;font-family:var(--font);color:var(--ink);background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));
+  padding-block:18px;
+  min-height:100vh;
+}
+button,input,select{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--now);outline-offset:2px}
+
+.banner{max-width:1100px;margin:0 auto 14px;padding:10px 14px;border:2px dashed var(--stroke);border-radius:10px;background:var(--card);font-weight:700;font-size:14px;text-align:center}
+
+.app{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(240px,1fr) minmax(300px,400px) minmax(240px,1fr);column-gap:28px;align-items:stretch}
+.left,.right{position:relative;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.left{align-items:flex-end}
+.stage{position:relative;min-width:0}
+.frame{position:relative;overflow:hidden;height:clamp(520px,calc(100vh - 56px),820px);border:3px solid var(--stroke);border-radius:14px;background:color-mix(in srgb,var(--card) 80%,transparent)}
+.track{position:absolute;left:0;right:0;top:0;will-change:transform}
+.empty{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:24px;font-weight:800;font-size:20px;color:var(--muted)}
+.empty small{display:block;margin-top:8px;font-size:14px;font-weight:700}
+
+.tile{display: flex;justify-content: flex-start; width:100%;max-width:240px;padding:13px 16px;border:2.5px solid var(--stroke);border-radius:10px;background:var(--card);color:var(--ink);font-weight:800;font-size:18px;line-height:1.15;text-align:center;cursor:pointer;box-shadow:3px 3px 0 var(--stroke);transition:transform .08s,box-shadow .08s}
+.tile:hover{transform:translate(1px,1px);box-shadow:2px 2px 0 var(--stroke)}
+.tile:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--stroke)}
+.tile small{display:block;margin-top:3px;font-size:12px;font-weight:700;color:var(--muted)}
+
+/* Левая колонка: время стоит на уровне линии «сейчас» */
+.info{position:absolute;left:0;right:54px;top:calc(var(--nowY) - 33px);text-align:right;font-variant-numeric:tabular-nums}
+.clock{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.hm{font-size:46px;font-weight:900;letter-spacing:-.5px}
+.ap{font-size:17px;font-weight:800;color:var(--muted);margin-top:3px;letter-spacing:1px}
+.rule{border:0;border-top:2.5px solid var(--stroke);margin:12px 0}
+.status{font-size:13px;font-weight:700;color:var(--muted);min-height:18px}
+.remain{font-size:23px;font-weight:900;margin-top:2px;min-height:30px}
+.count{font-size:19px;font-weight:800}
+
+/* Линия «сейчас» */
+.nowline{position:absolute;left:-78px;right:-10px;top:var(--nowY);height:0;border-top:3px solid var(--now);z-index:5;pointer-events:none}
+.nowline::before{content:"";position:absolute;left:-2px;top:-10px;border-left:14px solid var(--now);border-top:8.5px solid transparent;border-bottom:8.5px solid transparent}
+
+/* Уроки */
+.lesson{position:absolute;left:14px;right:14px;border:5px solid var(--c);border-radius:13px;background:color-mix(in srgb,var(--c) 14%,var(--card));padding:6px 52px 6px 14px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.lesson .nm{font-weight:800;font-size:clamp(19px,2.2vw,24px);line-height:1.15;overflow-wrap:anywhere}
+.lesson .tm{margin-top:3px;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.lesson .el{position:absolute;left:0;right:0;bottom:0;height:0;background:repeating-linear-gradient(135deg,var(--hatch) 0 6px,transparent 6px 12px);pointer-events:none}
+.lesson.past{opacity:.62}
+.lesson.now{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent),0 8px 22px var(--shadow)}
+.sq{position:absolute;top:6px;right:6px;width:28px;height:28px;display:grid;place-items:center;padding:0;border:2px solid var(--stroke);border-radius:7px;background:var(--card);color:var(--stroke);font-size:12px;line-height:1;cursor:pointer;z-index:2}
+.sq:hover{background:var(--stroke);color:var(--card)}
+.brk{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center}
+.brk button{height:18px;padding:0 9px;border:2px solid var(--stroke);border-radius:6px;background:var(--card);color:var(--stroke);font-size:11px;font-weight:800;line-height:1;cursor:pointer;white-space:nowrap}
+.brk button:hover{background:var(--stroke);color:var(--card)}
+
+/* Выпадающий список */
+.pop{position:fixed;z-index:50;min-width:190px;max-width:calc(100vw - 16px);overflow:auto;padding:6px;border:2.5px solid var(--stroke);border-radius:12px;background:var(--card);box-shadow:0 10px 30px var(--shadow)}
+.pop button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;font-size:16px;font-weight:700;text-align:left;cursor:pointer}
+.pop button:hover{background:color-mix(in srgb,var(--stroke) 14%,transparent)}
+.pop button.cur{background:color-mix(in srgb,var(--stroke) 22%,transparent);font-weight:900}
+.dot{flex:none;width:14px;height:14px;border-radius:50%;background:var(--c)}
+
+/* Окна */
+dialog{width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 32px);padding:0;border:3px solid var(--stroke);border-radius:16px;background:var(--card);color:var(--ink);box-shadow:0 20px 60px var(--shadow)}
+dialog[open]{display:flex;flex-direction:column}
+dialog::backdrop{background:rgba(8,12,34,.5)}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 12px 20px;border-bottom:2.5px solid var(--stroke)}
+.dhead h2{margin:0;font-size:21px;font-weight:900}
+.x{flex:none;width:36px;height:36px;border:2px solid var(--stroke);border-radius:9px;background:var(--card);color:var(--stroke);font-size:18px;cursor:pointer}
+.dbody{overflow:auto;padding:16px 20px 20px;display:flex;flex-direction:column;gap:22px}
+.dbody h3{margin:0 0 10px;font-size:15px;font-weight:900;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.dbody p{margin:0;font-size:14px;line-height:1.45;color:var(--muted);font-weight:600}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.btn{padding:9px 14px;border:2px solid var(--stroke);border-radius:10px;background:var(--card);color:var(--ink);font-size:15px;font-weight:800;cursor:pointer}
+.btn:hover{background:color-mix(in srgb,var(--stroke) 14%,var(--card))}
+.btn.primary{background:var(--stroke);color:var(--card)}
+.field,.select{padding:8px 10px;border:2px solid var(--stroke);border-radius:9px;background:var(--card);font-size:16px;font-weight:700;min-width:0}
+.lessons{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.lessons li{display:flex;align-items:center;gap:10px}
+.lessons .n{flex:none;width:26px;font-weight:900;font-size:18px;text-align:right}
+.lessons .select{flex:1}
+.rm{flex:none;width:38px;height:38px;border:2px solid var(--stroke);border-radius:9px;background:var(--card);color:var(--now);font-size:17px;font-weight:900;cursor:pointer}
+.chips{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.chips li{display:flex;align-items:center;gap:8px;padding:5px 6px 5px 8px;border:2px solid color-mix(in srgb,var(--stroke) 45%,transparent);border-radius:10px;min-width:0}
+.chips input[type=color]{flex:none;width:28px;height:28px;padding:0;border:0;background:none;cursor:pointer}
+.chips .sn{flex:1;min-width:0;font-weight:800;font-size:15px;overflow-wrap:anywhere}
+.chips .rm{width:30px;height:30px;font-size:14px}
+.msg{min-height:18px;font-size:14px;font-weight:700;color:var(--now)}
+.days{display:flex;flex-direction:column;gap:8px}
+.days button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border:2.5px solid var(--stroke);border-radius:11px;background:var(--card);font-size:18px;font-weight:800;cursor:pointer;text-align:left}
+.days button small{font-size:13px;font-weight:700;color:var(--muted)}
+.days button.sel{background:var(--stroke);color:var(--card)}
+.days button.sel small{color:var(--card)}
+.sw{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px}
+.sw input{width:22px;height:22px;accent-color:var(--stroke)}
+
+@media (max-width:899px){
+  .app{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"bell sched days" "info info info" "stage stage stage";gap:12px}
+  .left,.right{display:contents}
+  #bellBtn{grid-area:bell;}#schedBtn{grid-area:sched}#daysBtn{grid-area:days}
+  .tile{max-width:none;font-size:14px;padding:10px 8px;box-shadow:2px 2px 0 var(--stroke)}
+  .info{grid-area:info;position:static;display:grid;grid-template-columns:auto 1fr;column-gap:18px;align-items:center;text-align:left;padding:10px 14px;border:2.5px solid var(--stroke);border-radius:12px;background:var(--card)}
+  .clock{grid-row:1/3;align-items:center}
+  .hm{font-size:38px}
+  .rule{display:none}
+  .remain{font-size:20px;min-height:0}
+  .status{min-height:0}
+  .count{font-size:16px}
+  .stage{grid-area:stage}
+  .frame{height:clamp(420px,calc(100vh - 260px),700px)}
+  .nowline{left:-6px;right:-6px}
+  .nowline::before{display:none}
+}
+.foot{max-width:1100px;margin:14px auto 0;display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:700;color:var(--muted)}
+button.link{padding:6px;border:0;background:none;color:var(--stroke);font-size:14px;font-weight:800;text-decoration:underline;cursor:pointer}
+button.banner{display:block;width:100%;font:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+@media (prefers-reduced-motion:reduce){.tile{transition:none}}
+</style>
+
+<div class="banner" id="hint" role="status">Нажмите в любом месте страницы один раз. После этого звонок сможет играть сам.</div>
+
+<button type="button" class="banner" id="fileBanner" hidden>Файл данных подключён. Нажмите здесь, чтобы разрешить запись и продолжить сохранять в него.</button>
+
+<main class="app" id="app">
+  <aside class="left">
+    <button class="tile" id="bellBtn" type="button"><svg style="height: 20px;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0M3.124 7.5A8.969 8.969 0 0 1 5.292 3m13.416 0a8.969 8.969 0 0 1 2.168 4.5" />
+</svg><small id="bellSub"></small></button>
+    <div class="info" id="info">
+      <div class="clock"><span class="hm" id="hm">10:00</span><span class="ap" id="ap">AM</span></div>
+      <hr class="rule">
+      <div class="mid"><div class="status" id="status"></div><div class="remain" id="remain"></div></div>
+      <hr class="rule">
+      <div class="count" id="count"></div>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div class="frame" id="frame">
+      <div class="track" id="track"></div>
+      <div class="empty" id="empty" hidden><div>Уроков нет<small>Добавьте их кнопкой «расписание уроков»</small></div></div>
+    </div>
+    <div class="nowline" id="nowline"></div>
+  </section>
+
+  <aside class="right">
+    <button class="tile" id="schedBtn" type="button">расписание уроков</button>
+    <button class="tile" id="daysBtn" type="button">дни недели<small id="dayLabel"></small></button>
+  </aside>
+</main>
+
+<footer class="foot"><button type="button" class="link" id="dataBtn">Файл данных</button><span id="dataState"></span></footer>
+
+<div class="pop" id="pop" hidden></div>
+
+<dialog id="bellDlg" aria-labelledby="bellTitle">
+  <div class="dhead"><h2 id="bellTitle">Звук звонка</h2><button class="x" type="button" data-close aria-label="Закрыть">✕</button></div>
+  <div class="dbody">
+    <p>Звонок играет в начале и в конце каждого урока. Страница должна быть открыта.</p>
+    <label class="sw"><input type="checkbox" id="soundOn">Звонок включён</label>
+    <div>
+      <h3>Сейчас выбран</h3>
+      <div id="soundName" style="font-weight:800;font-size:17px;overflow-wrap:anywhere"></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="pickSound" type="button">Выбрать файл с компьютера</button>
+      <button class="btn" id="testSound" type="button">Проверить</button>
+      <button class="btn" id="resetSound" type="button">Стандартный звонок</button>
+    </div>
+    <input type="file" id="fileIn" accept="audio/*" hidden>
+    <div class="msg" id="soundMsg" role="status"></div>
+  </div>
+</dialog>
+
+<dialog id="schedDlg" aria-labelledby="schedTitle">
+  <div class="dhead"><h2 id="schedTitle">Расписание</h2><button class="x" type="button" data-close aria-label="Закрыть">✕</button></div>
+  <div class="dbody">
+    <section>
+      <h3>Начало первого урока</h3>
+      <div class="row"><input class="field" type="time" id="startIn"><span style="font-size:14px;font-weight:700;color:var(--muted)">Каждый урок идёт 45 минут. Перемены меняются кнопкой между уроками.</span></div>
+    </section>
+    <section>
+      <h3 id="lessonsTitle">Уроки</h3>
+      <ol class="lessons" id="lessonRows"></ol>
+      <button class="btn" id="addLesson" type="button">＋ Добавить урок</button>
+    </section>
+    <section>
+      <h3>Список предметов</h3>
+      <ul class="chips" id="subjList"></ul>
+      <form class="row" id="subjForm" autocomplete="off">
+        <input class="field" id="subjName" type="text" maxlength="30" placeholder="Новый предмет" aria-label="Название нового предмета" style="flex:1;min-width:150px">
+        <button class="btn primary" type="submit">Добавить</button>
+      </form>
+      <div class="msg" id="subjMsg" role="status"></div>
+    </section>
+  </div>
+</dialog>
+
+<dialog id="daysDlg" aria-labelledby="daysTitle">
+  <div class="dhead"><h2 id="daysTitle">Дни недели</h2><button class="x" type="button" data-close aria-label="Закрыть">✕</button></div>
+  <div class="dbody">
+    <p>Выберите день, чтобы посмотреть его расписание или изменить его кнопкой «расписание уроков».</p>
+    <div class="days" id="daysList"></div>
+  </div>
+</dialog>
+
+<dialog id="dataDlg" aria-labelledby="dataTitle">
+  <div class="dhead"><h2 id="dataTitle">Файл данных</h2><button class="x" type="button" data-close aria-label="Закрыть">✕</button></div>
+  <div class="dbody">
+    <p>Расписание, предметы, перемены и звук звонка (если файл звука не больше 5 МБ) можно хранить в файле на вашем компьютере. После подключения файл обновляется при каждом изменении.</p>
+    <div>
+      <h3>Состояние</h3>
+      <div id="fsInfo" style="font-weight:800;font-size:16px;overflow-wrap:anywhere"></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="newFile" type="button">Создать файл данных</button>
+      <button class="btn" id="openFile" type="button">Подключить готовый файл</button>
+      <button class="btn" id="unlinkFile" type="button" hidden>Отключить</button>
+    </div>
+    <p id="fsNote" hidden>Автосохранение в файл работает в Chrome и Edge на компьютере. В этом браузере используйте копию вручную.</p>
+    <div>
+      <h3>Копия вручную</h3>
+      <div class="row">
+        <button class="btn" id="dlData" type="button">Скачать копию</button>
+        <button class="btn" id="upData" type="button">Загрузить из файла</button>
+      </div>
+      <input type="file" id="importIn" accept=".json,application/json" hidden>
+    </div>
+    <div class="msg" id="dataMsg" role="status"></div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)};
+var DAYS=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+var DAYS_SHORT=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+var ON_DAY=['в понедельник','во вторник','в среду','в четверг','в пятницу','в субботу','в воскресенье'];
+var LESSON=45, K=3.5, MAXL=10, BRK=[5,10,15,20,25,30], KEY='uroki-v1';
+var PALETTE=['#43a52f','#1e7fe0','#f0592f','#8a38b0','#f2bf00','#12a3a0','#a8723a','#d52f4a','#e0509a','#5a66f0','#5f7b8e','#a9bb1c'];
+
+var LS={get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+
+/* ---------- данные ---------- */
+function defaults(){
+  var S=[['phys','Физика','#43a52f'],['alg','Алгебра','#1e7fe0'],['art','Искусство','#f0592f'],['geo','Геометрия','#8a38b0'],
+    ['bio','Биология','#f2bf00'],['gg','География','#12a3a0'],['his','История','#a8723a'],['rus','Русский язык','#d52f4a'],
+    ['lit','Литература','#e0509a'],['eng','Английский язык','#5a66f0'],['inf','Информатика','#5f7b8e'],['pe','Физкультура','#a9bb1c']];
+  function mk(ids,br){return {lessons:ids,breaks:ids.slice(1).map(function(_,i){return br&&br[i]!=null?br[i]:15})}}
+  return {
+    subjects:S.map(function(s){return {id:s[0],name:s[1],color:s[2]}}),
+    startMin:8*60+30, soundOn:true, soundName:null,
+    days:[
+      mk(['alg','rus','lit','eng','his','pe'],[15,15,20,15,10]),
+      mk(['geo','bio','gg','alg','inf','eng'],[15,15,20,15,10]),
+      mk(['phys','rus','alg','art','pe','his'],[15,15,20,15,10]),
+      mk(['phys','alg','art','geo','bio','eng'],[15,15,20,15,10]),
+      mk(['gg','lit','geo','phys','inf'],[15,15,20,15]),
+      mk([]),mk([])
+    ]
+  };
+}
+function normalize(st){
+  var ids={};st.subjects.forEach(function(s){ids[s.id]=1});
+  st.days=st.days.map(function(day){
+    var l=Array.isArray(day&&day.lessons)?day.lessons.filter(function(id){return ids[id]}).slice(0,MAXL):[];
+    var b=Array.isArray(day&&day.breaks)?day.breaks:[];
+    return {lessons:l,breaks:l.slice(1).map(function(_,i){return BRK.indexOf(b[i])>=0?b[i]:15})};
+  });
+}
+function load(){
+  var d=defaults();
+  try{
+    var raw=LS.get(KEY);
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o&&Array.isArray(o.subjects)&&o.subjects.length&&Array.isArray(o.days)&&o.days.length===7){
+        d.subjects=o.subjects.filter(function(s){return s&&typeof s.id==='string'&&typeof s.name==='string'&&/^#[0-9a-f]{6}$/i.test(s.color)});
+        d.days=o.days;
+        if(isFinite(o.startMin))d.startMin=Math.min(Math.max(0,o.startMin|0),16*60);
+        d.soundOn=o.soundOn!==false;
+        d.soundName=typeof o.soundName==='string'?o.soundName:null;
+      }
+    }
+  }catch(e){}
+  normalize(d);
+  return d;
+}
+var state=load();
+function save(){LS.set(KEY,JSON.stringify(state));scheduleFileWrite()}
+function subj(id){for(var i=0;i<state.subjects.length;i++)if(state.subjects[i].id===id)return state.subjects[i];return {id:id,name:'?',color:'#888888'}}
+
+/* ---------- время ---------- */
+function pad(n){return String(n).padStart(2,'0')}
+function t12(min){var h=Math.floor(min/60)%24,m=min%60;return (h%12||12)+':'+pad(m)}
+function ap(min){return Math.floor(min/60)%24<12?'AM':'PM'}
+function plural(n,f){var m=n%100,d=n%10;if(m>10&&m<20)return f[2];if(d===1)return f[0];if(d>1&&d<5)return f[1];return f[2]}
+function fmtRem(sec){
+  if(sec<60)return Math.max(0,sec)+' сек.';
+  var m=Math.ceil(sec/60);
+  if(m<60)return m+' мин.';
+  var h=Math.floor(m/60),r=m%60;
+  return h+' ч'+(r?' '+r+' мин.':'.');
+}
+function todayIdx(){return (new Date().getDay()+6)%7}
+function buildItems(day){
+  var items=[],t=state.startMin;
+  day.lessons.forEach(function(sid,i){
+    items.push({type:'lesson',i:i,sid:sid,s:t,e:t+LESSON});t+=LESSON;
+    if(i<day.lessons.length-1){var b=day.breaks[i];items.push({type:'break',i:i,b:b,s:t,e:t+b});t+=b}
+  });
+  return items;
+}
+
+/* ---------- состояние экрана ---------- */
+var selDay=todayIdx(), autoDay=true, items=[], nowY=300, lastSec=null, lastDate='';
+var frame=$('#frame'), track=$('#track');
+
+function setNowY(){
+  nowY=Math.round(frame.clientHeight*0.5);
+  document.documentElement.style.setProperty('--nowY',nowY+'px');
+}
+
+function renderTrack(){
+  closePop();
+  var day=state.days[selDay];
+  items=buildItems(day);
+  track.textContent='';
+  $('#empty').hidden=items.length>0;
+  items.forEach(function(it){
+    var el=document.createElement('div');
+    if(it.type==='lesson'){
+      var sj=subj(it.sid);
+      el.className='lesson';
+      el.style.setProperty('--c',sj.color);
+      el.style.top=(-it.e*K+3)+'px';
+      el.style.height=(LESSON*K-6)+'px';
+      var nm=document.createElement('div');nm.className='nm';nm.textContent=(it.i+1)+'. '+sj.name;
+      var tm=document.createElement('div');tm.className='tm';tm.textContent=t12(it.s)+' – '+t12(it.e)+' '+ap(it.e);
+      var elp=document.createElement('div');elp.className='el';
+      var b=document.createElement('button');b.type='button';b.className='sq';b.textContent='▾';
+      b.setAttribute('aria-label','Выбрать предмет для урока '+(it.i+1));
+      b.addEventListener('click',function(){openSubjectPop(b,it.i)});
+      el.append(nm,tm,elp,b);
+      it.elapsed=elp;
+    }else{
+      el.className='brk';
+      el.style.top=(-it.e*K)+'px';
+      el.style.height=(it.b*K)+'px';
+      var bb=document.createElement('button');bb.type='button';bb.textContent=it.b+' мин ▾';
+      bb.setAttribute('aria-label','Перемена '+it.b+' минут. Изменить');
+      bb.addEventListener('click',function(){openBreakPop(bb,it.i)});
+      el.append(bb);
+    }
+    it.el=el;track.append(el);
+  });
+  updateDayLabel();
+  tick();
+}
+
+function updateDayLabel(){
+  $('#dayLabel').textContent=DAYS[selDay]+(selDay===todayIdx()?' · сегодня':'');
+}
+
+function eventsFor(idx){
+  var ev=[];buildItems(state.days[idx]).forEach(function(it){if(it.type==='lesson'){ev.push(it.s*60);ev.push(it.e*60)}});
+  return ev;
+}
+
+function tick(){
+  var d=new Date();
+  var nowSec=d.getHours()*3600+d.getMinutes()*60+d.getSeconds();
+  var key=d.toDateString();
+  var tIdx=todayIdx();
+  if(key!==lastDate){
+    lastDate=key;
+    if(autoDay&&selDay!==tIdx){selDay=tIdx;renderTrack();return}
+  }
+  var isToday=selDay===tIdx;
+  var nowMin=isToday?nowSec/60:state.startMin-10;
+  track.style.transform='translateY('+(nowY+nowMin*K)+'px)';
+
+  /* часы */
+  var curMin=d.getHours()*60+d.getMinutes();
+  $('#hm').textContent=t12(curMin);
+  $('#ap').textContent=ap(curMin);
+
+  var lessons=items.filter(function(i){return i.type==='lesson'});
+  var cur=null;
+  items.forEach(function(it){
+    if(it.type==='lesson'){
+      var frac=Math.min(1,Math.max(0,(nowMin-it.s)/LESSON));
+      if(!isToday)frac=0;
+      it.elapsed.style.height=(frac*100)+'%';
+      it.el.classList.toggle('past',isToday&&frac>=1);
+      it.el.classList.toggle('now',isToday&&nowMin>=it.s&&nowMin<it.e);
+    }
+    if(isToday&&nowMin>=it.s&&nowMin<it.e)cur=it;
+  });
+
+  var status='',remain='';
+  if(!isToday){
+    status='Просмотр расписания';remain=DAYS[selDay]+', не сегодня';
+  }else if(!lessons.length){
+    status='Сегодня выходной';remain='';
+  }else if(cur&&cur.type==='lesson'){
+    status='Урок '+(cur.i+1)+' · '+subj(cur.sid).name;
+    remain='осталось '+fmtRem(cur.e*60-nowSec);
+  }else if(cur){
+    var nx=lessons[cur.i+1];
+    status='Перемена · дальше '+(nx?subj(nx.sid).name:'');
+    remain='осталось '+fmtRem(cur.e*60-nowSec);
+  }else if(nowMin<lessons[0].s){
+    status='Уроки ещё не начались';
+    remain='до 1 урока '+fmtRem(lessons[0].s*60-nowSec);
+  }else{
+    status='Уроки закончились';remain='';
+  }
+  $('#status').textContent=status;
+  $('#remain').textContent=remain;
+  var n=lessons.length;
+  $('#count').textContent=(isToday?'сегодня':ON_DAY[selDay])+' '+(n?n+' '+plural(n,['урок','урока','уроков']):'уроков нет');
+
+  /* звонок: всегда по реальному сегодняшнему расписанию */
+  if(lastSec!==null){
+    if(nowSec<lastSec)lastSec=nowSec-1;
+    var ev=eventsFor(tIdx);
+    for(var i=0;i<ev.length;i++){
+      if(ev[i]>lastSec&&ev[i]<=nowSec&&nowSec-ev[i]<=75){ring();break}
+    }
+  }
+  lastSec=nowSec;
+}
+
+/* ---------- выпадающие списки ---------- */
+var pop=$('#pop'), popAnchor=null;
+function closePop(){pop.hidden=true;popAnchor=null}
+function openPop(anchor,list,current,onPick){
+  if(!pop.hidden&&popAnchor===anchor){closePop();return}
+  pop.textContent='';
+  list.forEach(function(o){
+    var b=document.createElement('button');b.type='button';
+    if(o.color){var dt=document.createElement('span');dt.className='dot';dt.style.setProperty('--c',o.color);b.append(dt)}
+    b.append(document.createTextNode(o.label));
+    if(o.value===current)b.classList.add('cur');
+    b.addEventListener('click',function(){closePop();onPick(o.value)});
+    pop.append(b);
+  });
+  pop.hidden=false;popAnchor=anchor;
+  pop.style.maxHeight=Math.min(window.innerHeight*0.6,380)+'px';
+  var r=anchor.getBoundingClientRect(),pw=pop.offsetWidth,ph=pop.offsetHeight;
+  var left=Math.min(Math.max(8,r.right-pw),window.innerWidth-pw-8);
+  var top=r.bottom+6;if(top+ph>window.innerHeight-8)top=Math.max(8,r.top-ph-6);
+  pop.style.left=left+'px';pop.style.top=top+'px';
+}
+function openSubjectPop(anchor,i){
+  var day=state.days[selDay];
+  openPop(anchor,state.subjects.map(function(s){return {label:s.name,value:s.id,color:s.color}}),day.lessons[i],function(v){
+    day.lessons[i]=v;save();renderTrack();
+  });
+}
+function openBreakPop(anchor,i){
+  var day=state.days[selDay];
+  openPop(anchor,BRK.map(function(m){return {label:m+' минут',value:m}}),day.breaks[i],function(v){
+    day.breaks[i]=v;save();renderTrack();
+  });
+}
+document.addEventListener('pointerdown',function(e){
+  if(!pop.hidden&&!pop.contains(e.target)&&!e.target.closest('.sq,.brk button'))closePop();
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closePop()});
+window.addEventListener('resize',closePop);
+
+/* ---------- окна ---------- */
+function wireDialog(dlg){
+  dlg.addEventListener('click',function(e){if(e.target===dlg)dlg.close()});
+  dlg.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',function(){dlg.close()})});
+}
+['#bellDlg','#schedDlg','#daysDlg','#dataDlg'].forEach(function(s){wireDialog($(s))});
+
+/* дни недели */
+function renderDays(){
+  var box=$('#daysList');box.textContent='';
+  var t=todayIdx();
+  DAYS.forEach(function(name,i){
+    var b=document.createElement('button');b.type='button';
+    if(i===selDay)b.classList.add('sel');
+    var n=state.days[i].lessons.length;
+    var a=document.createElement('span');a.textContent=name;
+    var s=document.createElement('small');
+    s.textContent=(n?n+' '+plural(n,['урок','урока','уроков']):'уроков нет')+(i===t?' · сегодня':'');
+    b.append(a,s);
+    b.addEventListener('click',function(){selDay=i;autoDay=(i===t);$('#daysDlg').close();renderTrack()});
+    box.append(b);
+  });
+}
+$('#daysBtn').addEventListener('click',function(){renderDays();$('#daysDlg').showModal()});
+
+/* расписание */
+function fillSelect(sel,current){
+  sel.textContent='';
+  state.subjects.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.name;if(s.id===current)o.selected=true;sel.append(o)});
+}
+function renderSched(){
+  var day=state.days[selDay];
+  $('#schedTitle').textContent='Расписание · '+DAYS[selDay];
+  $('#lessonsTitle').textContent='Уроки: '+DAYS[selDay].toLowerCase();
+  $('#startIn').value=pad(Math.floor(state.startMin/60))+':'+pad(state.startMin%60);
+  var ol=$('#lessonRows');ol.textContent='';
+  day.lessons.forEach(function(sid,i){
+    var li=document.createElement('li');
+    var n=document.createElement('span');n.className='n';n.textContent=(i+1)+'.';
+    var sel=document.createElement('select');sel.className='select';sel.setAttribute('aria-label','Предмет, урок '+(i+1));
+    fillSelect(sel,sid);
+    sel.addEventListener('change',function(){day.lessons[i]=sel.value;save();renderTrack()});
+    var rm=document.createElement('button');rm.type='button';rm.className='rm';rm.textContent='✕';rm.setAttribute('aria-label','Убрать урок '+(i+1));
+    rm.addEventListener('click',function(){
+      day.lessons.splice(i,1);
+      if(i<day.breaks.length)day.breaks.splice(i,1);else if(i>0)day.breaks.splice(i-1,1);
+      normalize(state);save();renderTrack();renderSched();
+    });
+    li.append(n,sel,rm);ol.append(li);
+  });
+  if(!day.lessons.length){var li=document.createElement('li');li.style.color='var(--muted)';li.style.fontWeight='700';li.textContent='В этот день уроков нет.';ol.append(li)}
+  $('#addLesson').disabled=day.lessons.length>=MAXL;
+  var ul=$('#subjList');ul.textContent='';
+  state.subjects.forEach(function(s){
+    var li=document.createElement('li');
+    var c=document.createElement('input');c.type='color';c.value=s.color;c.setAttribute('aria-label','Цвет: '+s.name);
+    c.addEventListener('change',function(){s.color=c.value;save();renderTrack()});
+    var nm=document.createElement('span');nm.className='sn';nm.textContent=s.name;
+    var rm=document.createElement('button');rm.type='button';rm.className='rm';rm.textContent='✕';rm.setAttribute('aria-label','Удалить предмет '+s.name);
+    rm.addEventListener('click',function(){
+      var used=[];
+      state.days.forEach(function(d,di){if(d.lessons.indexOf(s.id)>=0)used.push(DAYS_SHORT[di])});
+      if(used.length){$('#subjMsg').textContent='«'+s.name+'» стоит в расписании ('+used.join(', ')+'). Сначала замените или уберите эти уроки.';return}
+      if(state.subjects.length<=1){$('#subjMsg').textContent='Нужен хотя бы один предмет.';return}
+      state.subjects=state.subjects.filter(function(x){return x!==s});
+      $('#subjMsg').textContent='';save();renderSched();
+    });
+    li.append(c,nm,rm);ul.append(li);
+  });
+}
+$('#schedBtn').addEventListener('click',function(){$('#subjMsg').textContent='';renderSched();$('#schedDlg').showModal()});
+$('#addLesson').addEventListener('click',function(){
+  var day=state.days[selDay];
+  if(day.lessons.length>=MAXL)return;
+  var pick=state.subjects.filter(function(s){return day.lessons.indexOf(s.id)<0})[0]||state.subjects[0];
+  day.lessons.push(pick.id);normalize(state);save();renderTrack();renderSched();
+});
+$('#startIn').addEventListener('change',function(){
+  var v=$('#startIn').value.split(':');
+  if(v.length<2||isNaN(+v[0]))return;
+  state.startMin=Math.min(16*60,Math.max(0,(+v[0])*60+(+v[1])));
+  save();renderTrack();
+});
+$('#subjForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var name=$('#subjName').value.trim().replace(/\s+/g,' ');
+  var msg=$('#subjMsg');
+  if(!name){msg.textContent='Введите название предмета.';return}
+  if(state.subjects.some(function(s){return s.name.toLowerCase()===name.toLowerCase()})){msg.textContent='Такой предмет уже есть.';return}
+  state.subjects.push({id:'s'+Date.now().toString(36),name:name,color:PALETTE[state.subjects.length%PALETTE.length]});
+  $('#subjName').value='';msg.textContent='';save();renderSched();
+});
+
+/* ---------- звонок ---------- */
+var actx=null, customUrl=null, playing=null, stopTimer=null, interacted=false, soundData=null;
+function readSoundData(b){
+  if(!b||b.size>5*1024*1024){soundData=null;return}
+  var r=new FileReader();
+  r.onload=function(){soundData=r.result;scheduleFileWrite()};
+  r.readAsDataURL(b);
+}
+var DB='uroki-sound';
+function idb(){
+  return new Promise(function(res,rej){
+    try{
+      var rq=indexedDB.open(DB,1);
+      rq.onupgradeneeded=function(){rq.result.createObjectStore('kv')};
+      rq.onsuccess=function(){res(rq.result)};
+      rq.onerror=function(){rej(rq.error)};
+    }catch(e){rej(e)}
+  });
+}
+function idbGet(){return idb().then(function(db){return new Promise(function(res,rej){var r=db.transaction('kv').objectStore('kv').get('bell');r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})})}
+function idbSet(blob){return idb().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(blob,'bell');t.oncomplete=res;t.onerror=function(){rej(t.error)}})})}
+function idbDel(){return idb().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').delete('bell');t.oncomplete=res;t.onerror=function(){rej(t.error)}})})}
+
+function unlock(){
+  if(interacted)return;interacted=true;
+  $('#hint').hidden=true;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}catch(e){}
+}
+document.addEventListener('pointerdown',unlock,true);
+document.addEventListener('keydown',unlock,true);
+
+function stopSound(){
+  clearTimeout(stopTimer);
+  if(playing){try{playing.pause()}catch(e){}playing=null}
+}
+function synth(){
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended')actx.resume();
+    var t0=actx.currentTime+0.05;
+    for(var n=0;n<14;n++){
+      var t=t0+n*0.2;
+      [[1568,0.22],[2349,0.12],[3136,0.06]].forEach(function(p){
+        var o=actx.createOscillator(),g=actx.createGain();
+        o.type='sine';o.frequency.value=p[0]*(n%2?1.01:1);
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(p[1],t+0.01);g.gain.exponentialRampToValueAtTime(0.0008,t+0.19);
+        o.connect(g).connect(actx.destination);o.start(t);o.stop(t+0.2);
+      });
+    }
+  }catch(e){}
+}
+function playBell(){
+  stopSound();
+  if(customUrl){
+    var a=new Audio(customUrl);playing=a;
+    a.play().catch(function(){synth()});
+    stopTimer=setTimeout(stopSound,30000);
+    a.addEventListener('ended',function(){if(playing===a)playing=null});
+  }else synth();
+}
+function ring(){if(state.soundOn)playBell()}
+
+function refreshBell(){
+  var name=customUrl?(state.soundName||'Свой файл'):'Стандартный звонок';
+  $('#soundName').textContent=name;
+  $('#bellSub').textContent=state.soundOn?name:'выключен';
+  $('#soundOn').checked=state.soundOn;
+}
+$('#bellBtn').addEventListener('click',function(){$('#soundMsg').textContent='';refreshBell();$('#bellDlg').showModal()});
+$('#soundOn').addEventListener('change',function(){state.soundOn=$('#soundOn').checked;save();refreshBell()});
+$('#pickSound').addEventListener('click',function(){$('#fileIn').click()});
+$('#testSound').addEventListener('click',function(){unlock();if(playing){stopSound();return}playBell()});
+$('#resetSound').addEventListener('click',function(){
+  stopSound();
+  if(customUrl){URL.revokeObjectURL(customUrl);customUrl=null}
+  state.soundName=null;soundData=null;save();idbDel().catch(function(){});
+  $('#soundMsg').textContent='';refreshBell();
+});
+$('#fileIn').addEventListener('change',function(){
+  var f=$('#fileIn').files&&$('#fileIn').files[0];
+  var msg=$('#soundMsg');
+  if(!f)return;
+  if(f.type&&f.type.indexOf('audio')!==0){msg.textContent='Нужен звуковой файл (mp3, wav, ogg).';return}
+  stopSound();
+  if(customUrl)URL.revokeObjectURL(customUrl);
+  customUrl=URL.createObjectURL(f);
+  state.soundName=f.name;soundData=null;readSoundData(f);save();refreshBell();
+  msg.style.color='var(--muted)';msg.textContent='Файл выбран. Нажмите «Проверить».';
+  idbSet(f).catch(function(){msg.textContent='Файл будет работать, пока страница открыта. После перезагрузки выберите его снова.'});
+  $('#fileIn').value='';
+});
+idbGet().then(function(b){
+  if(b&&b.size){customUrl=URL.createObjectURL(b);if(!state.soundName)state.soundName='Свой файл';readSoundData(b)}
+  refreshBell();
+}).catch(function(){refreshBell()});
+
+/* ---------- файл данных ---------- */
+var fh=null, fileTimer=null, fileState='', dirty=false;
+var canFS=typeof window.showSaveFilePicker==='function'&&typeof window.showOpenFilePicker==='function';
+var FT=[{description:'Данные расписания',accept:{'application/json':['.json']}}];
+
+function idbPutK(k,v){return idb().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=res;t.onerror=function(){rej(t.error)}})})}
+function idbGetK(k){return idb().then(function(db){return new Promise(function(res,rej){var r=db.transaction('kv').objectStore('kv').get(k);r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}})})}
+function idbDelK(k){return idb().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=res;t.onerror=function(){rej(t.error)}})})}
+
+function snapshot(){
+  return {v:1,subjects:state.subjects,startMin:state.startMin,days:state.days,soundOn:state.soundOn,soundName:state.soundName,soundData:soundData};
+}
+function parseData(o){
+  if(!(o&&Array.isArray(o.subjects)&&o.subjects.length&&Array.isArray(o.days)&&o.days.length===7))throw new Error('bad');
+  var d=defaults();
+  d.subjects=o.subjects.filter(function(s){return s&&typeof s.id==='string'&&typeof s.name==='string'&&/^#[0-9a-f]{6}$/i.test(s.color)});
+  if(!d.subjects.length)throw new Error('bad');
+  d.days=o.days;
+  if(isFinite(o.startMin))d.startMin=Math.min(Math.max(0,o.startMin|0),16*60);
+  d.soundOn=o.soundOn!==false;
+  d.soundName=typeof o.soundName==='string'?o.soundName:null;
+  normalize(d);
+  return d;
+}
+function dataUrlToBlob(u){
+  var i=u.indexOf(',');var mime=u.slice(5,i).split(';')[0];
+  var bin=atob(u.slice(i+1));var arr=new Uint8Array(bin.length);
+  for(var k=0;k<bin.length;k++)arr[k]=bin.charCodeAt(k);
+  return new Blob([arr],{type:mime});
+}
+function applyData(o){
+  var d=parseData(o);
+  if(typeof o.soundData==='string'&&o.soundData.indexOf('data:audio')===0){
+    try{
+      var blob=dataUrlToBlob(o.soundData);
+      stopSound();if(customUrl)URL.revokeObjectURL(customUrl);
+      customUrl=URL.createObjectURL(blob);soundData=o.soundData;
+      idbSet(blob).catch(function(){});
+    }catch(e){}
+  }else if(customUrl){d.soundName=state.soundName}
+  state=d;
+  LS.set(KEY,JSON.stringify(state));
+  renderTrack();refreshBell();
+}
+
+function setFileState(s){
+  fileState=s;
+  $('#dataState').textContent=!fh?'':(s==='ok'?'сохраняется в файл '+fh.name:'файл данных: нужно разрешение');
+  $('#fsInfo').textContent=!fh?'Файл данных не подключён':(s==='ok'?'Данные сохраняются в файл «'+fh.name+'»':'Файл «'+fh.name+'» подключён, нужно разрешение');
+  $('#fileBanner').hidden=!(fh&&s==='need');
+  $('#unlinkFile').hidden=!fh;
+}
+async function hasPerm(h,ask){
+  var o={mode:'readwrite'};
+  try{
+    if((await h.queryPermission(o))==='granted')return true;
+    if(ask&&(await h.requestPermission(o))==='granted')return true;
+  }catch(e){}
+  return false;
+}
+async function writeFile(){
+  if(!fh)return;
+  try{
+    var w=await fh.createWritable();
+    await w.write(JSON.stringify(snapshot(),null,1));
+    await w.close();
+    dirty=false;setFileState('ok');
+  }catch(e){setFileState('need')}
+}
+function scheduleFileWrite(){
+  if(!fh)return;
+  if(fileState==='need')dirty=true;
+  clearTimeout(fileTimer);fileTimer=setTimeout(writeFile,400);
+}
+async function readFile(){
+  var f=await fh.getFile();var txt=await f.text();
+  if(!txt.trim()){await writeFile();return}
+  applyData(JSON.parse(txt));
+}
+function dmsg(t,ok){var m=$('#dataMsg');m.textContent=t;m.style.color=ok?'var(--muted)':'var(--now)'}
+function fsErr(e){
+  if(e&&e.name==='AbortError')return '';
+  if(e&&(e.name==='SecurityError'||e.name==='NotAllowedError'))return 'Браузер не разрешил доступ к файлам на этой странице. Скачайте uroki.html и откройте его на компьютере в Chrome или Edge.';
+  return 'Не получилось: '+((e&&e.message)||e);
+}
+$('#dataBtn').addEventListener('click',function(){dmsg('',true);setFileState(fileState);$('#dataDlg').showModal()});
+$('#fileBanner').addEventListener('click',async function(){
+  if(!fh)return;
+  if(!(await hasPerm(fh,true)))return;
+  try{if(dirty)await writeFile();else{await readFile();setFileState('ok')}}catch(e){setFileState('ok')}
+});
+$('#newFile').addEventListener('click',async function(){
+  try{
+    var h=await window.showSaveFilePicker({suggestedName:'uroki-dannye.json',types:FT});
+    fh=h;dirty=false;
+    try{await idbPutK('handle',h)}catch(e){}
+    await writeFile();
+    dmsg('Файл создан. Теперь он обновляется при каждом изменении.',true);
+  }catch(e){var t=fsErr(e);if(t)dmsg(t)}
+});
+$('#openFile').addEventListener('click',async function(){
+  var prev=fh;
+  try{
+    var hs=await window.showOpenFilePicker({types:FT});var h=hs[0];
+    if(!(await hasPerm(h,true))){dmsg('Нужно разрешить запись в файл.');return}
+    fh=h;dirty=false;
+    try{await readFile()}catch(err){fh=prev;throw err}
+    try{await idbPutK('handle',h)}catch(e){}
+    setFileState('ok');
+    dmsg('Файл подключён, данные загружены.',true);
+  }catch(e){
+    var t=(e instanceof SyntaxError||(e&&e.message==='bad'))?'Файл не похож на файл данных.':fsErr(e);
+    if(t)dmsg(t);
+  }
+});
+$('#unlinkFile').addEventListener('click',function(){
+  fh=null;dirty=false;idbDelK('handle').catch(function(){});
+  setFileState('');dmsg('Файл отключён. Сам файл остался на компьютере.',true);
+});
+$('#dlData').addEventListener('click',function(){
+  var b=new Blob([JSON.stringify(snapshot(),null,1)],{type:'application/json'});
+  var u=URL.createObjectURL(b);
+  var a=document.createElement('a');a.href=u;a.download='uroki-dannye.json';document.body.append(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(u)},2000);
+  dmsg('Копия сохраняется в папку «Загрузки». Если файл не появился, откройте страницу как файл uroki.html на компьютере.',true);
+});
+$('#upData').addEventListener('click',function(){$('#importIn').click()});
+$('#importIn').addEventListener('change',function(){
+  var f=$('#importIn').files&&$('#importIn').files[0];
+  if(!f)return;
+  f.text().then(function(t){applyData(JSON.parse(t));save();dmsg('Данные загружены.',true)})
+    .catch(function(){dmsg('Файл не похож на файл данных.')});
+  $('#importIn').value='';
+});
+if(!canFS){$('#newFile').disabled=true;$('#openFile').disabled=true;$('#fsNote').hidden=false}
+setFileState('');
+if(canFS){
+  idbGetK('handle').then(async function(h){
+    if(!h||typeof h.queryPermission!=='function')return;
+    fh=h;
+    if(await hasPerm(h,false)){try{await readFile()}catch(e){}setFileState('ok')}
+    else setFileState('need');
+  }).catch(function(){});
+}
+
+/* ---------- запуск ---------- */
+setNowY();
+if(window.ResizeObserver)new ResizeObserver(function(){setNowY();tick()}).observe(frame);
+else window.addEventListener('resize',function(){setNowY();tick()});
+document.addEventListener('visibilitychange',function(){if(!document.hidden)tick()});
+renderTrack();
+refreshBell();
+setInterval(tick,1000);
+})();
+</script>
