@@ -4,7 +4,7 @@
   <meta name="author" content="Александр Тарасов репетитор английского. Get&Use youtube channel">
 </head>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
-<link rel="me" href="https://github.com/ваш-логин">
+<link rel="me" href="https://alexandrtarasov.github.io">
 <style>
 /* Раскладка: слева звонок и часы на уровне «сейчас», по центру лента уроков в рамке, справа два переключателя.
    Стиль: тетрадный лист в клетку, фломастерные рамки, как на эскизе. */
@@ -44,6 +44,7 @@ body{
 button,input,select{font-family:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--now);outline-offset:2px}
 
+#hint{position:fixed;left:50%;transform:translateX(-50%);bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:40;width:min(560px,calc(100vw - 32px));margin:0;box-shadow:0 6px 20px var(--shadow)}
 .banner{max-width:1100px;margin:0 auto 14px;padding:10px 14px;border:2px dashed var(--stroke);border-radius:10px;background:var(--card);font-weight:700;font-size:14px;text-align:center}
 
 .app{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(240px,1fr) minmax(300px,400px) minmax(240px,1fr);column-gap:28px;align-items:stretch}
@@ -78,6 +79,8 @@ button,input,select{font-family:inherit;color:inherit}
 .lesson{position:absolute;left:14px;right:14px;border:5px solid var(--c);border-radius:13px;background:color-mix(in srgb,var(--c) 14%,var(--card));padding:6px 52px 6px 14px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
 .lesson .nm{font-weight:800;font-size:clamp(19px,2.2vw,24px);line-height:1.15;overflow-wrap:anywhere}
 .lesson .tm{margin-top:3px;font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.lesson .lk{align-self:flex-start;position:relative;z-index:2;margin-top:4px;font-size:13px;font-weight:800;color:var(--stroke);overflow-wrap:anywhere}
+.lesson a.lk{text-decoration:underline}
 .lesson .el{position:absolute;left:0;right:0;bottom:0;height:0;background:repeating-linear-gradient(135deg,var(--hatch) 0 6px,transparent 6px 12px);pointer-events:none}
 .lesson.past{opacity:.62}
 .lesson.now{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent),0 8px 22px var(--shadow)}
@@ -114,7 +117,7 @@ dialog::backdrop{background:rgba(8,12,34,.5)}
 .lessons .n{flex:none;width:26px;font-weight:900;font-size:18px;text-align:right}
 .lessons .select{flex:1}
 .rm{flex:none;width:38px;height:38px;border:2px solid var(--stroke);border-radius:9px;background:var(--card);color:var(--now);font-size:17px;font-weight:900;cursor:pointer}
-.chips{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.chips{list-style:none;margin:0 0 12px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
 .chips li{display:flex;align-items:center;gap:8px;padding:5px 6px 5px 8px;border:2px solid color-mix(in srgb,var(--stroke) 45%,transparent);border-radius:10px;min-width:0}
 .chips input[type=color]{flex:none;width:28px;height:28px;padding:0;border:0;background:none;cursor:pointer}
 .chips .sn{flex:1;min-width:0;font-weight:800;font-size:15px;overflow-wrap:anywhere}
@@ -131,7 +134,7 @@ dialog::backdrop{background:rgba(8,12,34,.5)}
 @media (max-width:899px){
   .app{grid-template-columns:1fr 1fr 1fr;grid-template-areas:"bell sched days" "info info info" "stage stage stage";gap:12px}
   .left,.right{display:contents}
-  #bellBtn{grid-area:bell;}#schedBtn{grid-area:sched}#daysBtn{grid-area:days}
+  #bellBtn{grid-area:bell}#schedBtn{grid-area:sched}#daysBtn{grid-area:days}
   .tile{max-width:none;font-size:14px;padding:10px 8px;box-shadow:2px 2px 0 var(--stroke)}
   .info{grid-area:info;position:static;display:grid;grid-template-columns:auto 1fr;column-gap:18px;align-items:center;text-align:left;padding:10px 14px;border:2.5px solid var(--stroke);border-radius:12px;background:var(--card)}
   .clock{grid-row:1/3;align-items:center}
@@ -377,7 +380,13 @@ function renderTrack(){
       var b=document.createElement('button');b.type='button';b.className='sq';b.textContent='▾';
       b.setAttribute('aria-label','Выбрать предмет для урока '+(it.i+1));
       b.addEventListener('click',function(){openSubjectPop(b,it.i)});
-      el.append(nm,tm,elp,b);
+      el.append(nm,tm);
+      if(sj.name.toLowerCase().indexOf('анг')>=0){
+        var lk=document.createElement('a');lk.className='lk';lk.textContent='Alex eng tutor';
+        lk.href='https://alexandrtarasov.github.io';lk.target='_blank';lk.rel='noopener noreferrer';
+        el.append(lk);
+      }
+      el.append(elp,b);
       it.elapsed=elp;
     }else{
       el.className='brk';
